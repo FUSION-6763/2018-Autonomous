@@ -46,6 +46,8 @@ public class Robot extends IterativeRobot {
 	double defaultSpeed;
 	
 	boolean firstRun = true;
+	boolean firstRun2 = true;
+	
 	float lastEncoderValue;
 
 	/**
@@ -109,7 +111,7 @@ public class Robot extends IterativeRobot {
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
 						}
 						else if(navx.getYaw() < 87) {
-							myRobot.tankDrive(defaultSpeed, 0.0);
+							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
 						}
 						else {
 							myRobot.tankDrive(0.0, 0.0);
@@ -118,20 +120,42 @@ public class Robot extends IterativeRobot {
 					else {
 						// Right side of scale
 						if(leftEncoder.get() < ticksPerInch * 224) {
+							//Drive straight 224"
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
 						}
 						else if(navx.getYaw() < 87) {
-							myRobot.tankDrive(defaultSpeed, 0.0);
+							//Turn right 90 degrees
+							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
 						}
 						else if(firstRun) {
+							//Reset the encoders
 							lastEncoderValue = leftEncoder.get();
 							firstRun = false;
 						}
-						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 100)) {
+						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 224)) {
+							//Drive straight 224"
 							accurateDrive(navx.getYaw(), defaultSpeed, 90, 2);
 							System.out.println((leftEncoder.get() - lastEncoderValue) / ticksPerInch);
 						}
+						else if(navx.getYaw() < 0) {
+							//Turn left 90 degrees
+							myRobot.tankDrive(-defaultSpeed, defaultSpeed);
+						}
+						else if(firstRun2) {
+							//Reset the encoders
+							lastEncoderValue = leftEncoder.get();
+							firstRun2 = false;
+						}
+						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 112)) {
+							//Drive straight 112"
+							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
+						}
+						else if(navx.getYaw() > -87) {
+							//Turn left 90 degrees
+							myRobot.tankDrive(-defaultSpeed, defaultSpeed);
+						}
 						else {
+							//Stop
 							myRobot.tankDrive(0.0, 0.0);
 						}
 					}
@@ -159,7 +183,7 @@ public class Robot extends IterativeRobot {
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
 						}
 						else if(navx.getYaw() > -87) {
-							myRobot.tankDrive(0.0, defaultSpeed);
+							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
 						}
 						else {
 							myRobot.tankDrive(0.0, 0.0);
@@ -178,7 +202,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		myRobot.arcadeDrive(-stick.getY(), stick.getX());
+		myRobot.arcadeDrive(-stick.getY(), stick.getRawAxis(4));
 		
 		climber.set(-stick.getRawAxis(3));
 	}
