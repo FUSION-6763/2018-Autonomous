@@ -13,11 +13,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.hal.HAL;
 import edu.wpi.first.wpilibj.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -33,10 +35,24 @@ public class Robot extends IterativeRobot {
 	
 	DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 	Joystick stick = new Joystick(0);
+	
+	Spark elevator1 = new Spark(3);
+	Spark elevator2 = new Spark(4);
+	
+	Spark intakeL = new Spark(7);
+	Spark intakeR = new Spark(8);
+	
+	JoystickButton X = new JoystickButton(stick, 3);
+	JoystickButton Y = new JoystickButton(stick, 4);
+	
+	JoystickButton bumperR = new JoystickButton(stick, 6);
+	
 	Encoder leftEncoder = new Encoder(0, 1);
 	Encoder rightEncoder = new Encoder(2, 3);
 	
-	Spark climber = new Spark(7);
+	Timer timer = new Timer();
+	
+	//Spark climber = new Spark(7);
 	
 	AHRS navx = new AHRS(SerialPort.Port.kUSB);
 	
@@ -47,6 +63,7 @@ public class Robot extends IterativeRobot {
 	
 	boolean firstRun = true;
 	boolean firstRun2 = true;
+	boolean firstRun3 = true;
 	
 	float lastEncoderValue;
 
@@ -63,6 +80,9 @@ public class Robot extends IterativeRobot {
 		rightEncoder.setReverseDirection(true);
 		
 		SmartDashboard.putNumber("Default Speed", 0.5);
+		
+		elevator2.setInverted(true);
+		intakeR.setInverted(true);
 	}
 	
 	public void robotPeriodic() {
@@ -93,6 +113,9 @@ public class Robot extends IterativeRobot {
 		data = DriverStation.getInstance().getGameSpecificMessage();
 		
 		defaultSpeed = SmartDashboard.getNumber("Default Speed", 0.5);
+		
+		timer.reset();
+		timer.stop();
 	}
 
 	/**
@@ -113,9 +136,33 @@ public class Robot extends IterativeRobot {
 						else if(navx.getYaw() < 87) {
 							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
 						}
+						else if(firstRun2) {
+							timer.reset();
+							timer.start();
+							myRobot.tankDrive(0.0, 0.0);
+							firstRun2 = false;
+						}
+						else if(timer.get() < 5.0) {
+							elevator1.set(0.5);
+							elevator2.set(0.5);
+						}
+						else if(timer.get() < 5.3) {
+							elevator1.set(0.0);
+							elevator2.set(0.0);
+						}
+						else if(timer.get() < 5.8) {
+							intakeL.set(0.5);
+							intakeR.set(0.5);
+						}
 						else {
 							myRobot.tankDrive(0.0, 0.0);
+							elevator1.set(0.0);
+							elevator2.set(0.0);
+							intakeL.set(0.0);
+							intakeR.set(0.0);
 						}
+						//elevator1.set(0.3);
+						//elevator2.set(0.3);
 					}
 					else {
 						// Right side of scale
@@ -202,9 +249,30 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		myRobot.arcadeDrive(-stick.getY(), stick.getRawAxis(4));
+		if(bumperR.get()) {
+			myRobot.arcadeDrive(-(stick.getY() / 2), stick.getX() / 2);
+		}
+		else {
+			myRobot.arcadeDrive(-stick.getY(), stick.getX());
+		}
 		
-		climber.set(-stick.getRawAxis(3));
+		//climber.set(-stick.getRawAxis(3));
+		
+		elevator1.set(-stick.getRawAxis(5));
+		elevator2.set(-stick.getRawAxis(5));
+		
+		if(X.get()) {
+			intakeL.set(-0.5);
+			intakeR.set(-0.5);
+		}
+		else if(Y.get()) {
+			intakeL.set(0.5);
+			intakeR.set(0.5);
+		}
+		else {
+			intakeL.set(0.0);
+			intakeR.set(0.0);
+		}
 	}
 
 	/**
