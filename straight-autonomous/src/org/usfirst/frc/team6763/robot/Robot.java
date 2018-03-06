@@ -323,12 +323,20 @@ public class Robot extends IterativeRobot {
 			intakeR.set(0.0);
 		}
 	}
+	
+	@Override
+	public void testInit() {
+		leftEncoder.reset();
+		rightEncoder.reset();
+	}
 
 	/**
 	 * This function is called periodically during test mode.
 	 */
 	@Override
 	public void testPeriodic() {
+		System.out.println("Left Encoder: "+leftEncoder.get());
+		System.out.println("Right Encoder: "+rightEncoder.get());
 	}
 	
 	public void accurateDrive(float gyroValue, double speed, double targetAngle, int tolerence) {
