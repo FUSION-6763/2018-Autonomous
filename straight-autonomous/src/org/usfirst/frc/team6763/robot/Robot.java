@@ -82,7 +82,7 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber("Default Speed", 0.5);
 		
 		elevator2.setInverted(true);
-		intakeR.setInverted(true);
+		intakeL.setInverted(true);
 	}
 	
 	public void robotPeriodic() {
@@ -240,6 +240,55 @@ public class Robot extends IterativeRobot {
 				break;
 			case "switch":
 				// Put switch auto code here
+				if(HAL.getAllianceStation() == AllianceStationID.Blue1 || HAL.getAllianceStation() == AllianceStationID.Red1) {
+					//Station 1 code
+					if(data.charAt(0) == 'L') {
+						//Left side of switch
+						if(leftEncoder.get() < ticksPerInch * 168) {
+							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
+						}
+						else if(navx.getYaw() < 87) {
+							myRobot.tankDrive(defaultSpeed / 2, -(defaultSpeed / 2));
+						}
+						else {
+							myRobot.tankDrive(0.0, 0.0);
+						}
+					}
+					else {
+						//Right side of switch
+						
+					}
+				}
+				else if(HAL.getAllianceStation() == AllianceStationID.Blue2 || HAL.getAllianceStation() == AllianceStationID.Red2) {
+					//Station 2 code
+					if(data.charAt(0) == 'L') {
+						//Left side of switch
+						
+					}
+					else {
+						//Right side of switch
+						
+					}
+				}
+				else if(HAL.getAllianceStation() == AllianceStationID.Blue3 || HAL.getAllianceStation() == AllianceStationID.Red3) {
+					//Station 3 code
+					if(data.charAt(0) == 'L') {
+						//Left side of switch
+						
+					}
+					else {
+						//Right side of switch
+						if(leftEncoder.get() < ticksPerInch * 168) {
+							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
+						}
+						else if(navx.getYaw() > -87) {
+							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
+						}
+						else {
+							myRobot.tankDrive(0.0, 0.0);
+						}
+					}
+				}
 				break;
 		}
 	}
@@ -250,10 +299,10 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		if(bumperR.get()) {
-			myRobot.arcadeDrive(-(stick.getY() / 2), stick.getX() / 2);
+			myRobot.arcadeDrive(-(stick.getY() / 2), -stick.getX() / 2);
 		}
 		else {
-			myRobot.arcadeDrive(-stick.getY(), stick.getX());
+			myRobot.arcadeDrive(-stick.getY(), -stick.getX());
 		}
 		
 		//climber.set(-stick.getRawAxis(3));
@@ -262,12 +311,12 @@ public class Robot extends IterativeRobot {
 		elevator2.set(-stick.getRawAxis(5));
 		
 		if(X.get()) {
-			intakeL.set(-0.5);
-			intakeR.set(-0.5);
+			intakeL.set(-1.0);
+			intakeR.set(-1.0);
 		}
 		else if(Y.get()) {
-			intakeL.set(0.5);
-			intakeR.set(0.5);
+			intakeL.set(1.0);
+			intakeR.set(1.0);
 		}
 		else {
 			intakeL.set(0.0);
