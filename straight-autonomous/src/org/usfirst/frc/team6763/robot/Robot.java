@@ -58,7 +58,7 @@ public class Robot extends IterativeRobot {
 	
 	String data;
 	
-	final int ticksPerInch = 106;
+	final float ticksPerInch = 53;
 	double defaultSpeed;
 	
 	boolean firstRun = true;
@@ -66,7 +66,8 @@ public class Robot extends IterativeRobot {
 	boolean firstRun3 = true;
 	
 	float lastEncoderValue;
-
+	
+	
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -78,11 +79,15 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putData("Auto choices", m_chooser);
 		
 		rightEncoder.setReverseDirection(true);
+		leftEncoder.setReverseDirection(true);
 		
-		SmartDashboard.putNumber("Default Speed", 0.5);
+		SmartDashboard.putNumber("Default Speed", 0.7);
 		
-		elevator2.setInverted(true);
+		elevator1.setInverted(true);
 		intakeL.setInverted(true);
+		
+		leftEncoder.reset();
+		rightEncoder.reset();
 	}
 	
 	public void robotPeriodic() {
@@ -136,7 +141,7 @@ public class Robot extends IterativeRobot {
 						else if(navx.getYaw() < 87) {
 							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
 						}
-						else if(firstRun2) {
+						/*else if(firstRun2) {
 							timer.reset();
 							timer.start();
 							myRobot.tankDrive(0.0, 0.0);
@@ -153,7 +158,7 @@ public class Robot extends IterativeRobot {
 						else if(timer.get() < 5.8) {
 							intakeL.set(0.5);
 							intakeR.set(0.5);
-						}
+						}*/
 						else {
 							myRobot.tankDrive(0.0, 0.0);
 							elevator1.set(0.0);
@@ -166,7 +171,7 @@ public class Robot extends IterativeRobot {
 					}
 					else {
 						// Right side of scale
-						if(leftEncoder.get() < ticksPerInch * 224) {
+						if(leftEncoder.get() < ticksPerInch * 212) {
 							//Drive straight 224"
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
 						}
@@ -179,7 +184,7 @@ public class Robot extends IterativeRobot {
 							lastEncoderValue = leftEncoder.get();
 							firstRun = false;
 						}
-						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 224)) {
+						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 100)) {
 							//Drive straight 224"
 							accurateDrive(navx.getYaw(), defaultSpeed, 90, 2);
 							System.out.println((leftEncoder.get() - lastEncoderValue) / ticksPerInch);
@@ -211,7 +216,35 @@ public class Robot extends IterativeRobot {
 					// Station 2 code
 					if(data.charAt(1) == 'L') {
 						// Left side of scale
-						
+						if(leftEncoder.get() < ticksPerInch * 76) {
+							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
+						}
+						else if(navx.getYaw() > -87) {
+							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
+						}
+						else if(firstRun) {
+							lastEncoderValue = leftEncoder.get();
+							firstRun = false;
+						}
+						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 91)) {
+							accurateDrive(navx.getYaw(), defaultSpeed, -90, 2);
+						}
+						else if(navx.getYaw() < 0) {
+							myRobot.tankDrive(defaultSpeed / 2, -(defaultSpeed / 2));
+						}
+						else if(firstRun2) {
+							lastEncoderValue = leftEncoder.get();
+							firstRun2 = false;
+						}
+						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 252)) {
+							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
+						}
+						else if(navx.getYaw() < 87) {
+							myRobot.tankDrive(defaultSpeed / 2, -(defaultSpeed / 2));
+						}
+						else {
+							myRobot.tankDrive(0.0, 0.0);
+						}
 					}
 					else {
 						// Right side of scale
@@ -263,7 +296,39 @@ public class Robot extends IterativeRobot {
 					//Station 2 code
 					if(data.charAt(0) == 'L') {
 						//Left side of switch
-						
+						if(leftEncoder.get() < ticksPerInch * 62.72) {
+							//Drive straight 62.72"
+							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
+						}
+						else if(navx.getYaw() > -87) {
+							//Turn left 90 degrees
+							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
+						}
+						else if(firstRun) {
+							//Reset encoders
+							lastEncoderValue = leftEncoder.get();
+							firstRun = false;
+						}
+						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 34.72)) {
+							//Drive straight 34.72"
+							accurateDrive(navx.getYaw(), defaultSpeed, -90, 2);
+						}
+						else if(navx.getYaw() < 0) {
+							//Turn right 90 degrees
+							myRobot.tankDrive(defaultSpeed / 2, -(defaultSpeed / 2));
+						}
+						else if(firstRun2) {
+							lastEncoderValue = leftEncoder.get();
+							firstRun2 = false;
+						}
+						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 69.44)) {
+							//Drive straight 69.44"
+							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
+						}
+						else {
+							//Stop
+							myRobot.tankDrive(0.0, 0.0);
+						}
 					}
 					else {
 						//Right side of switch
@@ -299,11 +364,13 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		if(bumperR.get()) {
-			myRobot.arcadeDrive(-(stick.getY() / 2), -stick.getX() / 2);
+			myRobot.arcadeDrive(-(stick.getY() / 2), stick.getX() / 2);
 		}
 		else {
-			myRobot.arcadeDrive(-stick.getY(), -stick.getX());
+			myRobot.arcadeDrive(-stick.getY(), stick.getX());
 		}
+		
+		//myRobot.tankDrive(-stick.getY(), -stick.getRawAxis(5));
 		
 		//climber.set(-stick.getRawAxis(3));
 		
@@ -352,5 +419,9 @@ public class Robot extends IterativeRobot {
 			System.out.println("Good");
 			myRobot.tankDrive(speed, speed);
 		}
+	}
+	public void disabledPeriodic() {
+		System.out.println("Left Encoder: "+leftEncoder.get());
+		System.out.println("Right Encoder: "+rightEncoder.get());
 	}
 }
