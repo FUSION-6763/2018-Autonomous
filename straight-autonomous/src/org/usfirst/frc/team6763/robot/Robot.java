@@ -474,11 +474,11 @@ public class Robot extends IterativeRobot {
 		elevator2.set(-stick.getRawAxis(5));
 		
 		if(X.get()) {
-			intakeL.set(-1.0);
+			intakeL.set(-0.8);
 			intakeR.set(-1.0);
 		}
 		else if(Y.get()) {
-			intakeL.set(1.0);
+			intakeL.set(0.8);
 			intakeR.set(1.0);
 		}
 		else {
