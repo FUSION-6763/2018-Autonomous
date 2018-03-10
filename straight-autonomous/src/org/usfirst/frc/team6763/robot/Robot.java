@@ -145,8 +145,8 @@ public class Robot extends IterativeRobot {
 						// Left side of scale
 						if(leftEncoder.get() < ticksPerInch * 244) {
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(0.1);
-							intakeR.set(0.1);
+							intakeL.set(-0.1);
+							intakeR.set(-0.1);
 						}
 						else if(navx.getYaw() < 17) {
 							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
@@ -192,8 +192,8 @@ public class Robot extends IterativeRobot {
 						if(mode == 1 && leftEncoder.get() < ticksPerInch * 215){
 							//Drive straight 224"
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(0.1);
-							intakeR.set(0.1);
+							intakeL.set(-0.1);
+							intakeR.set(-0.1);
 						}
 						else if(firstRun[0]){
 							//Next mode
@@ -265,8 +265,8 @@ public class Robot extends IterativeRobot {
 						// Left side of scale
 						if(leftEncoder.get() < ticksPerInch * 76) {
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(0.1);
-							intakeR.set(0.1);
+							intakeL.set(-0.1);
+							intakeR.set(-0.1);
 						}
 						else if(navx.getYaw() > -87) {
 							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
@@ -310,8 +310,8 @@ public class Robot extends IterativeRobot {
 						// Right side of scale
 						if(leftEncoder.get() < ticksPerInch * 336) {
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(0.1);
-							intakeR.set(0.1);
+							intakeL.set(-0.1);
+							intakeR.set(-0.1);
 						}
 						else if(navx.getYaw() > -87) {
 							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
@@ -332,8 +332,8 @@ public class Robot extends IterativeRobot {
 						//Left side of switch
 						if(leftEncoder.get() < ticksPerInch * 100) {
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(0.1);
-							intakeR.set(0.1);
+							intakeL.set(-0.1);
+							intakeR.set(-0.1);
 						}
 						else if(navx.getYaw() < 17) {
 							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
@@ -388,8 +388,8 @@ public class Robot extends IterativeRobot {
 						if(leftEncoder.get() < ticksPerInch * 62.72) {
 							//Drive straight 62.72"
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(0.1);
-							intakeR.set(0.1);
+							intakeL.set(-0.1);
+							intakeR.set(-0.1);
 						}
 						else if(navx.getYaw() > -87) {
 							//Turn left 90 degrees
@@ -436,8 +436,8 @@ public class Robot extends IterativeRobot {
 						//Right side of switch
 						if(leftEncoder.get() < ticksPerInch * 168) {
 							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(0.1);
-							intakeR.set(0.1);
+							intakeL.set(-0.1);
+							intakeR.set(-0.1);
 						}
 						else if(navx.getYaw() > -87) {
 							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
@@ -482,8 +482,8 @@ public class Robot extends IterativeRobot {
 			intakeR.set(1.0);
 		}
 		else {
-			intakeL.set(0.1);
-			intakeR.set(0.1);
+			intakeL.set(-0.1);
+			intakeR.set(-0.1);
 		}
 	}
 	
