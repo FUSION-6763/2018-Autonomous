@@ -482,8 +482,8 @@ public class Robot extends IterativeRobot {
 			intakeR.set(1.0);
 		}
 		else {
-			intakeL.set(0.0);
-			intakeR.set(0.0);
+			intakeL.set(0.1);
+			intakeR.set(0.1);
 		}
 	}
 	
