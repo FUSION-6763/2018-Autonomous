@@ -8,11 +8,10 @@
 package org.usfirst.frc.team6763.robot;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.sun.xml.internal.fastinfoset.Encoder;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Encoders;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.CameraServer; 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
