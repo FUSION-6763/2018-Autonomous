@@ -7,21 +7,27 @@
 
 package org.usfirst.frc.team6763.robot;
 
+import com.kauailabs.navx.frc.AHRS;
+import com.sun.xml.internal.fastinfoset.Encoder;
+
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Encoders;
+import edu.wpi.first.wpilibj.CameraServer; 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.buttons.JoystickButton;
-import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.hal.HAL;
-import edu.wpi.first.wpilibj.hal.AllianceStationID;
-import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.SerialPort;
 
-import com.kauailabs.navx.frc.AHRS;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.usfirst.frc.team6763.robot.Instruction;
+import org.usfist.frc.team6763.robot.Instruction.State;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -32,32 +38,45 @@ import com.kauailabs.navx.frc.AHRS;
  */
 public class Robot extends IterativeRobot {
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	SendableChooser<String> stationChooser = new SendableChooser<>();
 	
 	DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 	Joystick stick = new Joystick(0);
-	
+	Joystick Drivestick = new Joystick(1);
+			
 	Spark elevator1 = new Spark(3);
 	Spark elevator2 = new Spark(4);
 	
 	Spark intakeL = new Spark(7);
 	Spark intakeR = new Spark(8);
 	
+	JoystickButton A = new JoystickButton(stick, 1);
+	JoystickButton B = new JoystickButton(stick, 2);
 	JoystickButton X = new JoystickButton(stick, 3);
 	JoystickButton Y = new JoystickButton(stick, 4);
-	JoystickButton A = new JoystickButton(stick, 1);
+	JoystickButton RB = new JoystickButton(stick, 6);
 	
-	JoystickButton bumperR = new JoystickButton(stick, 6);
+	JoystickButton bumperR = new JoystickButton(DriveStick, 6);
 	
 	Encoder leftEncoder = new Encoder(0, 1);
 	Encoder rightEncoder = new Encoder(2, 3);
 	
-	Timer timer = new Timer();
+	javax.swing.Timer timer = new Timer();
+	
+	double currentSpeed;
+	double previousSpeed;
+	final double accelerationRate = .006;
+	final double decelerationRate = .005;
+	final double scaleOutput = 0.7;
+	final double switchOutput = 0.5; 
+	final double distanceScale = 0.8;
 	
 	//Spark climber = new Spark(7);
 	
-	AHRS navx = new AHRS(SerialPort.Port.kUSB);
+	final static int tolerance = 2;
+	AHRS navx = new AHRS(SerialPort.Port.kUBS);
 	
-	String data;
+	String data; 
 	
 	final float ticksPerInch = 53;
 	double defaultSpeed;
@@ -68,6 +87,9 @@ public class Robot extends IterativeRobot {
 	float lastEncoderValue;
 	double lastTimerValue;
 	
+	State state = State.STOP;
+	List<com.sun.org.apache.bcel.internal.generic.Instruction> autoMode = new ArrayList<Instruction>();
+	int instructionIndex = 0;
 	
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -79,42 +101,41 @@ public class Robot extends IterativeRobot {
 		m_chooser.addObject("Switch", "switch");
 		SmartDashboard.putData("Auto choices", m_chooser);
 		
+		stationChooser.addDeafult("Station 1", "station1");
+		stationChooser.addObject("Station 2", "station2");
+		stationChooser.addObject("Station 3", "station3");
+		smartDashboard.putData("Station Choices", stationChooser);
+		
 		rightEncoder.setReverseDirection(true);
 		leftEncoder.setReverseDirection(true);
 		
 		SmartDashboard.putNumber("Default Speed", 0.8);
+		
+		CameraServer.getInstance().startAutomaticCapture();
 		
 		elevator1.setInverted(true);
 		intakeL.setInverted(true);
 		
 		leftEncoder.reset();
 		rightEncoder.reset();
-	}
+	]
+		
 	
 	public void robotPeriodic() {
 		SmartDashboard.putNumber("Gyro", navx.getYaw());
 		
 		//System.out.println(leftEncoder.get());
-		System.out.println("Left Encoder: "+leftEncoder.get());
-		System.out.println("Right Encoder: "+rightEncoder.get());
+		//System.out.println("Left Encoder: "+leftEncoder.get());
+		//System.out.println("Right Encoder: "+rightEncoder.get());
 	}
 
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select
-	 * between different autonomous modes using the dashboard. The sendable
-	 * chooser code works with the Java SmartDashboard. If you prefer the
-	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-	 * getString line to get the auto name from the text box below the Gyro
-	 *
-	 * <p>You can add additional auto modes by adding additional comparisons to
-	 * the switch structure below with additional strings. If using the
-	 * SendableChooser make sure to add them to the chooser code above as well.
-	 */
 	@Override
 	public void autonomousInit() {
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
-		System.out.println("Auto selected: " + m_chooser.getSelected());
+	{
+		System.out.println("Auto selectd: " + m_chooser.getSelectd());
+		
+		currentSpeed = 0.4;
+		instructionIndex = 0;
 		
 		navx.reset();
 		leftEncoder.reset();
@@ -122,363 +143,289 @@ public class Robot extends IterativeRobot {
 		
 		data = DriverStation.getInstance().getGameSpecificMessage();
 		
-		defaultSpeed = SmartDashboard.getNumber("Default Speed", 0.5);
+		defaultSpeed = SmartDashboard.getNumber("Default Speed", 0.8);
 		
-		timer.reset();
 		timer.stop();
+		timer.reset();
 		
-		mode = 1;
+		// Determine if the scale is on the right or left.
+		if (m_chooser.getSelected().equals("scale")) {
+			
+			// Determine which alliance station the robot is in.
+			if (data.charAt(1) == 'R') {
+				
+				// Determine which alliance sation the robot is in.
+				switch (stationChooser.getSelected()) {
+				case "station1":
+					autoMode = AutonomousMode.scaleRighPositionLeft;
+					break;
+				case "station2":
+					autoMode = AutonomousMode.scaleRightPositionCenter;
+					break;
+				deffault:
+					autoMode = AutonomousMode.scaleRightPositionRight;
+					break;
+			}
+		} else {
 		
-		firstRun = new boolean[] {true, true, true, true, true, true, true, true, true, true, true};
+			//Determine which alliance station the robot is in.
+			switch (stationChooser.getSelected()) {
+			case "station1":
+				autoMode = AutonomousMode.scaleLeftPositionLeft;
+				System.out.println("Picked Auto Mode");
+				break;
+			case "station2":
+				autoMode = AutonomousMode.scaleLeftPositionCenter;
+				break;
+			default:
+				autoMode = AutonomousMode.scaleLeftPositionRight;
+				break;
+			}
+		}
+	} else if (m_chooser.getSelected().equals("switch")) {
+		
+		// Determine if the switch is on the left or right.
+		if (data.charAt(0) == 'R') {
+			
+			// Determine which alliance station the robot is in.
+			switch (stationChooser.getSelected()) {
+			case "station1":
+				autoMode = AutonomousMode.switchRightPositionLeft;
+				break;
+			case "staiton2":
+				autoMode = AutonomousMode.switchRightPositionCenter;
+				break;
+			default:
+				autoMode = AutonomousMode.switchRightPositionRight;
+				break;
+		}
 	}
-
+		else {
+			switch (stationChooser.getSelected()) {
+			case "station1":
+				autoMode = AutonomousMode.switchLeftPositionLeft;
+				break;
+			case "station2":
+				autoMode = AutonomousMode.switchLeftPositioncenter;
+				break;
+			default:
+				autoMode = AutonomousMode.switchLeftPositionRight;
+				break;
+			}
+		}
+	} else {
+		//Set to default mode (STOP)
+		autoMode = AutonomousMode.stop;
+	}
+}
 	/**
 	 * This function is called periodically during autonomous.
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_chooser.getSelected()) {
-			case "scale":
-				// Put scale auto code here
-				if(HAL.getAllianceStation() == AllianceStationID.Blue1 || HAL.getAllianceStation() == AllianceStationID.Red1) {
-					// Station 1 code
-					if(data.charAt(1) == 'L') {
-						// Left side of scale
-						if(leftEncoder.get() < ticksPerInch * 245) {
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(-0.3);
-							intakeR.set(-0.3);
-						}
-						else if(navx.getYaw() < 17) {
-							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
-						}
-						else if(firstRun[0]) {
-							lastEncoderValue = leftEncoder.get();
-							firstRun[0] = false;
-						}
-						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 5)) {
-							accurateDrive(navx.getYaw(), defaultSpeed, 17, 2);
-						}
-						else if(firstRun[1]) {
-							timer.start();
-							firstRun[1] = false;
-						}
-						else if(timer.get() < 3.25) {
-							elevator1.set(1.0);
-							elevator2.set(1.0);
-							myRobot.tankDrive(0.0, 0.0);
-						}
-						else if(timer.get() < 3.75) {
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-						}
-						else if(timer.get() < 4.75) {
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-							intakeL.set(0.9);
-							intakeR.set(0.9);
-						}
-						else {
-							intakeL.set(0.0);
-							intakeR.set(0.0);
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-							myRobot.tankDrive(0.0, 0.0);
-						}
-						//elevator1.set(0.3);
-						//elevator2.set(0.3);
+		Instruction instruction = new Instruction(State.STOP, 0, 0);
+		if(instructionIndex < autoMode.size()) {
+			instruction = autoMode.get(instructionIndex);
+		}
+		
+		final float currentAngle = navx.getYaw();
+		
+		switch (instruction.getState()) {
+		
+			case DRIVE_FORWARD:
+				System.out.println("Robot Driving Forward: " + getDistanceTraveled());
+				if (getDistanceTraveled() < instruction.getLimit()) {
+					if(currentSpeed < defaultSpeed && leftEncoder.get() / ticksPerInch < DistanceScale * instruction.getLimit() && currentSpeed > 0.6) {
+						currentSpeed+=AccelerationRate;
+					} else if(leftEncoder.get() / ticksPerInch > DistanceScale * instruction.getLimit() && currentSpeed > 0.6) {
+						currentSpeed-=AccelerationRate;
 					}
-					else {
-						// Right side of scale
-						if(mode == 1 && leftEncoder.get() < ticksPerInch * 213){
-							//Drive straight 224"
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							//intakeL.set(-0.3);
-							//intakeR.set(-0.3);
-						}
-						else if(firstRun[0]){
-							//Next mode
-							mode++;
-							firstRun[0] = false;
-						}
-						else if(mode == 2 && navx.getYaw() < 87){
-							//Turn right 90 degrees
-							myRobot.tankDrive(defaultSpeed * 0.95, -(defaultSpeed * 0.95));
-						}
-						else if(firstRun[1]){
-							//Next mode, reset encoders
-							mode++;
-							leftEncoder.reset();
-							firstRun[1] = false;
-						}
-						else if(mode == 3 && leftEncoder.get() < ticksPerInch * 190){
-							//Drive straight 224"
-							accurateDrive(navx.getYaw(), defaultSpeed, 93, 2);
-						}
-						else if(firstRun[2]){
-							//Next mode
-							mode++;
-							firstRun[2] = false;
-						}
-						else if(mode == 4 && navx.getYaw() > 40){
-							myRobot.tankDrive(-(defaultSpeed * 0.95), defaultSpeed * 0.95);
-						}
-						else if(firstRun[3]){
-							//Next mode, reset encoders
-							mode++;
-							leftEncoder.reset();
-							firstRun[3] = false;
-						}
-						else if(mode == 5 && leftEncoder.get() < ticksPerInch * 1) {
-							myRobot.tankDrive(defaultSpeed, defaultSpeed);
-						}
-						else if(firstRun[4]) {
-							timer.start();
-							firstRun[4] = false;
-						}
-						else if(timer.get() < 3.25) {
-							intakeL.set(0.0);
-							intakeR.set(0.0);
-							elevator1.set(1.0);
-							elevator2.set(1.0);
-							myRobot.tankDrive(0.0, 0.0);
-						}
-						else if(timer.get() < 3.75) {
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-						}
-						else if(timer.get() < 4.75) {
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-							intakeL.set(0.5);
-							intakeR.set(0.5);
-						}
-						else {
-							intakeL.set(0.0);
-							intakeR.set(0.0);
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-							myRobot.tankDrive(0.0, 0.0);
-						}
-					}
+					accurateDrive(navx.getYaw(), currentSpeed, instruction.getTargetangle(), tolerance);
 				}
-				else if(HAL.getAllianceStation() == AllianceStationID.Blue2 || HAL.getAllianceStation() == AllianceStationID.Red2) {
-					// Station 2 code
-					if(data.charAt(1) == 'L') {
-						// Left side of scale
-						if(leftEncoder.get() < ticksPerInch * 76) {
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(-0.3);
-							intakeR.set(-0.3);
-						}
-						else if(navx.getYaw() > -87) {
-							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
-						}
-						else if(firstRun[0]) {
-							lastEncoderValue = leftEncoder.get();
-							firstRun[0] = false;
-						}
-						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 91)) {
-							accurateDrive(navx.getYaw(), defaultSpeed, -90, 2);
-						}
-						else if(navx.getYaw() < 0) {
-							myRobot.tankDrive(defaultSpeed / 2, -(defaultSpeed / 2));
-						}
-						else if(firstRun[1]) {
-							lastEncoderValue = leftEncoder.get();
-							firstRun[1] = false;
-						}
-						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 252)) {
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-						}
-						else if(navx.getYaw() < 87) {
-							myRobot.tankDrive(defaultSpeed / 2, -(defaultSpeed / 2));
-						}
-						else {
-							myRobot.tankDrive(0.0, 0.0);
-						}
-					}
-					else {
-						// Right side of scale
-						
-					}
-				}
-				else if(HAL.getAllianceStation() == AllianceStationID.Blue3 || HAL.getAllianceStation() == AllianceStationID.Red3) {
-					// Station 3 code
-					if(data.charAt(1) == 'L') {
-						// Left side of scale
-						
-					}
-					else {
-						// Right side of scale
-						if(leftEncoder.get() < ticksPerInch * 336) {
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(-0.3);
-							intakeR.set(-0.3);
-						}
-						else if(navx.getYaw() > -87) {
-							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
-						}
-						else {
-							intakeL.set(0.0);
-							intakeR.set(0.0);
-							myRobot.tankDrive(0.0, 0.0);
-						}
-					}
+				else {
+					currentSpeed = 0.4;
+					leftEncoder.reset();
+					rightEncoder.reset();
+					instructionIndex++;
 				}
 				break;
-			case "switch":
-				// Put switch auto code here
-				if(HAL.getAllianceStation() == AllianceStationID.Blue1 || HAL.getAllianceStation() == AllianceStationID.Red1) {
-					//Station 1 code
-					if(data.charAt(0) == 'L') {
-						//Left side of switch
-						if(leftEncoder.get() < ticksPerInch * 100) {
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(-0.4);
-							intakeR.set(-0.4);
-						}
-						else if(navx.getYaw() < 17) {
-							myRobot.tankDrive(defaultSpeed, -defaultSpeed);
-						}
-						else if(firstRun[1]) {
-							timer.start();
-							firstRun[1] = false;
-						}
-						else if(timer.get() < 1.25) {
-							elevator1.set(1.0);
-							elevator2.set(1.0);
-							myRobot.tankDrive(0.0, 0.0);
-						}
-						else if(timer.get() < 1.75) {
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-						}
-						else if(firstRun[2]) {
-							lastEncoderValue = leftEncoder.get();
-							firstRun[2] = false;
-						}
-						else if(leftEncoder.get() < lastEncoderValue + 800) {
-							myRobot.tankDrive(defaultSpeed * 0.8, defaultSpeed * 0.8);
-						}
-						else if(firstRun[3]) {
-							lastTimerValue = timer.get();
-							firstRun[3] = false;
-						}
-						else if(timer.get() < lastTimerValue + 1.0) {
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-							intakeL.set(0.5);
-							intakeR.set(0.5);
-						}
-						else {
-							intakeL.set(0.0);
-							intakeR.set(0.0);
-							elevator1.set(0.0);
-							elevator2.set(0.0);
-							myRobot.tankDrive(0.0, 0.0);
-						}
+				
+			case DRIVE_Backward:
+				if (etDistanceTraveled() < instruction.getLimit()) {
+					if(currentSpeed < defaultSped && leftEcoder.get() / ticksPerInch < DistanceScale * instruction.getLimit()) {
+						currentSpeed+=AccelerationRate;
 					}
-					else {
-						//Right side of switch
-						
+					else if(leftEncoder.get() ticksPerInch > DistanceScale * instruction.getLimit() && current) {
+						currentSpeed-=AccelerationRate;
 					}
+					accurateDrive(navx.getYaw(), -currentSpeed, instruction.getTargetAngle(), tolerance);
 				}
-				else if(HAL.getAllianceStation() == AllianceStationID.Blue2 || HAL.getAllianceStation() == AllianceStationID.Red2) {
-					//Station 2 code
-					if(data.charAt(0) == 'L') {
-						//Left side of switch
-						if(leftEncoder.get() < ticksPerInch * 62.72) {
-							//Drive straight 62.72"
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(-0.4);
-							intakeR.set(-0.4);
-						}
-						else if(navx.getYaw() > -87) {
-							//Turn left 90 degrees
-							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
-						}
-						else if(firstRun[0]) {
-							//Reset encoders
-							lastEncoderValue = leftEncoder.get();
-							firstRun[0] = false;
-						}
-						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 34.72)) {
-							//Drive straight 34.72"
-							accurateDrive(navx.getYaw(), defaultSpeed, -90, 2);
-						}
-						else if(navx.getYaw() < 0) {
-							//Turn right 90 degrees
-							myRobot.tankDrive(defaultSpeed / 2, -(defaultSpeed / 2));
-						}
-						else if(firstRun[1]) {
-							lastEncoderValue = leftEncoder.get();
-							firstRun[1] = false;
-						}
-						else if(leftEncoder.get() < lastEncoderValue + (ticksPerInch * 69.44)) {
-							//Drive straight 69.44"
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-						}
-						else {
-							//Stop
-							myRobot.tankDrive(0.0, 0.0);
-						}
-					}
-					else {
-						//Right side of switch
-						
-					}
+				else {
+					currentSpeed = 0.4;
+					leftEncoder.reset();
+					righEncoder.reset();
+					instructionIndex++;
 				}
-				else if(HAL.getAllianceStation() == AllianceStationID.Blue3 || HAL.getAllianceStation() == AllianceStationID.Red3) {
-					//Station 3 code
-					if(data.charAt(0) == 'L') {
-						//Left side of switch
-						
-					}
-					else {
-						//Right side of switch
-						if(leftEncoder.get() < ticksPerInch * 168) {
-							accurateDrive(navx.getYaw(), defaultSpeed, 0, 2);
-							intakeL.set(-0.4);
-							intakeR.set(-0.4);
-						}
-						else if(navx.getYaw() > -87) {
-							myRobot.tankDrive(-(defaultSpeed / 2), defaultSpeed / 2);
-						}
-						else {
-							myRobot.tankDrive(0.0, 0.0);
-							intakeL.set(0.0);
-							intakeR.set(0.0);
-						}
-					}
+				break;
+				
+			case TURN_RIGHT:
+				System.out.println("Robot Turning Right");
+				if (currentSpeed <= 0.4) {
+					currentSpeed = defaultSpeed;
 				}
+				if (currentAngle < instruction.getTargetAngle() - tolerance ||
+					currentAngle > instruction.getTargetAnlge() + tolerance) {
+					if(currentSpeed > 0.55) {
+						currentSpeed -= DecelerationRate;
+					}
+					myRobot.tankDrive(currentSpeed, -currentSpeed);
+				} else {
+					leftEncoder.reset();
+					rightEncoder.reset();
+					instructionIndex++;
+				}
+				break;
+				
+			case TURN_LEFT:
+				if(currentSpeed <= 0.4) {
+					currentSpeed = defaultSpeed;
+				}
+				if (currentAngle < instruction.getTargetAngle() - tolerance ||
+					currentAngle > instruction.getTargetAngle() + tolerance) {
+					if(currnetSpeed > 0.55) {
+						currentSpeed -= DecelerationRate;
+					}
+					myRobot.tankDrive(-currentSpeed, currentSpeed);
+				} else {
+					leftEncoder.reset();
+					rightEncoder.reset();
+					instructionIndex++;
+				}
+				break;
+				
+			case RAISE_LIFT:
+				if (Double.compare(timer.get(), 0) == 0) {
+					timer.start():
+				}
+				System.out.println("Time: "+timer.get());
+				if(timer.get() < instruction.getLimit()) {
+					if(currentSpeed < 1) {
+						currentSpeed+=AccelerationRate;
+					}
+					elevator1.set(currentSpeed);
+					elevator.set(currentSpeed);
+					myRobot.tankDrive(0.0, 0.0);
+				}
+				else {
+					timer.stop();
+					timer.reset();
+					elevator1.set(0.0);
+					elevator2.set(0.0);
+					instructionIndex++;
+					currentSpeed = 0.4;
+				}
+				break;
+				
+			case LOWER_LEFT:
+				if (Double.compare(timer.get(), 0) == 0) {
+					timer.start();
+				}
+				System.out.println("Time: "+timer.get());
+				if(timer.get() < instruction.getLimit()) {
+					/*if(currentSpeed < 1) {
+					     currentSpeed+=AccelerationRate;
+					}*/
+					elevator1.set(1.0);
+					elevator2.set(1.0);
+					myRobot.tankDrive(0.0,0.0);
+				}
+				else {
+					timer.stop();
+					timer.reset();
+					elevator1.set(0.0);
+					elevator2.set(0.0);
+					instructionIndex++;
+					currentSpeed = 0.4;
+				}
+				
+			case EJECT_CUBE:
+				if (Double.compare(timer.get(), 0) == 0) {
+					timer.start();
+				}
+				if(tmer.get() < instruction.getLimit()) {
+					intakeL.set((m_chooser.getSelected().equals("switch")) ? SwitchOutput : ScaleOutput);
+					intakeR.set((m_chooser.getSelected().equals("switch")) ? SwitchOutput : ScaleOutput);
+				}
+				else {
+					timer.stop();
+					timer.reset();
+					intakeL.set(-0.2);
+					intakeR.set(-0.2);
+					instructionIndex++;
+				}
+				break;
+				
+			case WAIT:
+				if (Double.compare(timer.get(), 0) == 0) {
+					timer.start();
+				}
+				if (timer.get() < instruction.getLimit()) {
+					try {
+						timer.wait(10);
+					} catch (InterruptedException | IllegalMonitorStateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else {
+					timer.stop();
+					timer.reset();
+					instructionIndex++;
+				}
+				break;
+			
+			case STOP: // intentional fall-through
+			default:
+				myRobot.tankDrive(0.0);
+				elevator1.set(0.0);
+				elevator2.set(0.0);
 				break;
 		}
-		System.out.println(mode);
-	}
-
+				
 	/**
 	 * This function is called periodically during operator control.
 	 */
 	@Override
+	
+public void teleopInit() {
+		currentSpeed = 0.4;
+	}
+	
 	public void teleopPeriodic() {
-		if(bumperR.get()) {
-			myRobot.arcadeDrive(-(stick.getY() / 2), stick.getX() / 2);
+		if(bumerR.get()) {
+			myRobot.arcadeDrive(-(DriveStick.gety()*0.6), DriveStick.getX()*0.6);
 		}
 		else {
-			myRobot.arcadeDrive(-stick.getY(), stick.getX());
+			/*currentSpeed=DriveStick.getY();
+			if(currentSpeed > previousSpeed + AccelerationRate) {
+					currentSpeed = previousSpeed + AccelerationRate;
+			}
+			myRobot.arcadeDrive(currentSpeed, DriveStick.getX()*0.8);
+			previousSpeed = currentSpeed; */
+			myRobot.arcadeDrive(-(DriveStick.getY()), DriveStick.getX()*0.8);
 		}
 		
 		//myRobot.tankDrive(-stick.getY(), -stick.getRawAxis(5));
 		
-		//climber.set(-stick.getRawAxis(3));
+		//climer.set(-stick.getRawAxis(3));
 		
-		elevator1.set(-stick.getRawAxis(5));
-		elevator2.set(-stick.getRawAxis(5));
+		elevator1.set(-stick.getRawAxis(1) / 1.5);
+		elevator2.set(-stick.getRawAxis(1) / 1.5);
+		
+		//System.out.println("Elevator Enocder: "+elevatorEncoder.get();
 		
 		if(X.get()) {
-			intakeL.set(-0.8);
-			intakeR.set(-0.8);
+			intakeL.set(-0.7);
+			intakeR.set(-0.7);
 		}
 		else if(Y.get()) {
 			intakeL.set(0.8);
@@ -488,43 +435,53 @@ public class Robot extends IterativeRobot {
 			intakeL.set(-0.8);
 			intakeR.set(0.8);
 		}
+		else if(B.get()) {
+			intakeL.set(0.8);
+			intakeR.set(-0.8);
+		}
+		else if(RB.get()) {
+			intakeL.set(0.6);
+			intakeR.set(0.6);
+		}
 		else {
-			intakeL.set(-0.0);
-			intakeR.set(-0.0);
+			intakeL.set(-0.2);
+			intakeR.set(-0.2);
 		}
 	}
 	
 	@Override
 	public void testInit() {
-		leftEncoder.reset();
-		rightEncoder.reset();
-	}
 
+	}
 	/**
 	 * This function is called periodically during test mode.
 	 */
 	@Override
 	public void testPeriodic() {
-		System.out.println("Left Encoder: "+leftEncoder.get());
-		System.out.println("Right Encoder: "+rightEncoder.get());
+		
 	}
 	
-	public void accurateDrive(float gyroValue, double speed, double targetAngle, int tolerence) {
-		if(gyroValue < targetAngle - tolerence) {
-			System.out.println("Too far left");
-			myRobot.tankDrive(speed, speed / 4);
-		}
-		else if(gyroValue > targetAngle + tolerence) {
-			System.out.println("Too far right");
-			myRobot.tankDrive(speed / 4, speed);
-		}
-		else {
-			System.out.println("Good");
-			myRobot.tankDrive(speed, speed);
-		}
+	public void accurateDrive(final foat gyroValue, final double speed, final double targetAngle, final int tolerance) {
+	System.out.println("speed: "+speed);
+	if(gyroValue < targetAngle - tolerance) {
+		System.out.println("Too far left");
+		myRobot.tankDrive(speed, speed / 4);
 	}
-	public void disabledPeriodic() {
+	else if(gyroValue > targetAngle + tolerance) {
+		System.out.println("Too far right");
+		myRobot.tankDrive(sped / 4, speed);
+	}
+	else 
+		System.out.println("Good");
+		myRobot.tankDrive(speed, speed);
+	}
+}
+	
+	private float getDistanceTraveled() {
+		final float leftDistance = leftEncoder.get() / ticksPerInch;
+		final float rightDistance = rightEncoder.get() / ticksPerInch;
 		//System.out.println("Left Encoder: "+leftEncoder.get());
 		//System.out.println("Right Encoder: "+rightEncoder.get());
+		return (leftDistance + rightDistance) / 2f;
 	}
 }
