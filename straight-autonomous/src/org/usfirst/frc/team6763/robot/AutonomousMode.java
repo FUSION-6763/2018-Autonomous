@@ -16,7 +16,7 @@ public interface AutonomousMode {
 			new Instruction(State.WAIT, 1, 0),
 			new Instruction(State.EJECT_CUBE, 1, 0)));
 	
-	List<Insruction> switchLeftPositionCenter = new ArrayList<Instruction>(Arrays.asList(
+	List<Instruction> switchLeftPositionCenter = new ArrayList<Instruction>(Arrays.asList(
 			new Instruction(State.DRIVE_FORWARD, 96, -50),
 			new Instruction(State.TURN_RIGHT, 0, 0),
 			new Instruction(State.RAISE_LIFT, 1, 0),
@@ -55,6 +55,20 @@ public interface AutonomousMode {
 	List<Instruction> scaleLeftPositionLeft = new ArrayList<Instruction>(Arrays.asList(
 			new Instruction(State.DRIVE_FORWARD, 242, 0),
 			new Instruction(State.TURN_RIGHT, 0, 35),
+			new Instruction(State.RAISE_LIFT, 3.25, 0),
+			new Instruction(State.EJECT_CUBE, 1, 0)));
+	
+	List<Instruction> scaleLeftPositionCenter = new ArrayList<Instruction>(Arrays.asList(
+			new Instruction(State.DRIVE_FORWARD, 36, 0)));
+	
+	List<Instruction> scaleLeftPositionRight = new ArrayList<Instruction>(Arrays.asList(
+			new Instruction(State.DRIVE_FORWARD, 36, 0)));
+	
+	List<Instruction> scaleRightPositionLeft = new ArrayList<Instruction>(Arrays.asList(
+			new Instruction(State.DRIVE_FORWARD, 225, 0),
+			new Instruction(State.TURN_RIGHT, 0, 90),
+			new Instruction(State.DRIVE_FORWARD, 177, 90),
+			new Instruction(State.TURN_LEFT, 0, -10),
 			new Instruction(State.RAISE_LIFT, 3.25, 0),
 			new Instruction(State.EJECT_CUBE, 1, 0)));
 	
