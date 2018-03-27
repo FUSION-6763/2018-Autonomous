@@ -331,7 +331,7 @@ public class Robot extends IterativeRobot {
 				System.out.println("Time: "+timer.get());
 				if(timer.get() < instruction.getLimit()) {
 					/*if(currentSpeed < 1) {
-					     currentSpeed+=AccelerationRate;
+					     currentSpeed+=accelerationRate;
 					}*/
 					elevator1.set(1.0);
 					elevator2.set(1.0);
@@ -405,8 +405,8 @@ public class Robot extends IterativeRobot {
 		}
 		else {
 			/*currentSpeed=DriveStick.getY();
-			if(currentSpeed > previousSpeed + AccelerationRate) {
-					currentSpeed = previousSpeed + AccelerationRate;
+			if(currentSpeed > previousSpeed + accelerationRate) {
+					currentSpeed = previousSpeed + accelerationRate;
 			}
 			myRobot.arcadeDrive(currentSpeed, DriveStick.getX()*0.8);
 			previousSpeed = currentSpeed; */
