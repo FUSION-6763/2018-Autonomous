@@ -36,6 +36,8 @@ public class Instruction {
 		DRIVE_BACKWARD,
 		TURN_RIGHT,
 		TURN_LEFT,
+		SPIN_RIGHT,
+		SPIN_LEFT,
 		RAISE_LIFT,
 		LOWER_LIFT,
 		EJECT_CUBE,

@@ -39,9 +39,9 @@ public class Robot extends IterativeRobot {
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 	SendableChooser<String> stationChooser = new SendableChooser<>();
 	
-	DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
-	Joystick stick = new Joystick(0);
-	Joystick DriveStick = new Joystick(1);
+	final DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
+	final Joystick stick = new Joystick(0);
+	final Joystick driveStick = new Joystick(1);
 			
 	Spark elevator1 = new Spark(3);
 	Spark elevator2 = new Spark(4);
@@ -55,7 +55,7 @@ public class Robot extends IterativeRobot {
 	JoystickButton Y = new JoystickButton(stick, 4);
 	JoystickButton RB = new JoystickButton(stick, 6);
 	
-	JoystickButton bumperR = new JoystickButton(DriveStick, 6);
+	JoystickButton bumperR = new JoystickButton(driveStick, 6);
 	
 	Encoder leftEncoder = new Encoder(0, 1);
 	Encoder rightEncoder = new Encoder(2, 3);
@@ -66,19 +66,19 @@ public class Robot extends IterativeRobot {
 	double previousSpeed;
 	final double accelerationRate = .006;
 	final double decelerationRate = .005;
-	final double ScaleOutput = 0.7;
-	final double SwitchOutput = 0.5; 
-	final double DistanceScale = 0.8;
-	
-	//Spark climber = new Spark(7);
+	final double scaleOutput = 0.7;
+	final double switchOutput = 0.5; 
+	final double distanceScale = 0.8;
+	final double minimumDriveSpeed = 0.6;
+	final double robotWidth = 27;
 	
 	final static int tolerance = 2;
-	AHRS navx = new AHRS(SerialPort.Port.kUSB);
+	final AHRS navx = new AHRS(SerialPort.Port.kUSB);
 	
 	String data; 
 	
 	final float ticksPerInch = 53;
-	double defaultSpeed;
+	double defaultSpeed = 0.8;
 	
 	boolean firstRun[];
 	int mode = 1;
@@ -122,15 +122,11 @@ public class Robot extends IterativeRobot {
 	
 	public void robotPeriodic() {
 		SmartDashboard.putNumber("Gyro", navx.getYaw());
-		
-		//System.out.println(leftEncoder.get());
-		//System.out.println("Left Encoder: "+leftEncoder.get());
-		//System.out.println("Right Encoder: "+rightEncoder.get());
 	}
 
 	@Override
 	public void autonomousInit() {
-		System.out.println("Auto selectd: " + m_chooser.getSelected());
+		System.out.println("Auto selected: " + m_chooser.getSelected());
 		
 		currentSpeed = 0.4;
 		instructionIndex = 0;
@@ -163,52 +159,52 @@ public class Robot extends IterativeRobot {
 				default:
 					autoMode = AutonomousMode.scaleRightPositionRight;
 					break;
-			}
-		} else {
+				}
+			} else {
 		
-			//Determine which alliance station the robot is in.
-			switch (stationChooser.getSelected()) {
-			case "station1":
-				autoMode = AutonomousMode.scaleLeftPositionLeft;
-				System.out.println("Picked Auto Mode");
-				break;
-			case "station2":
-				autoMode = AutonomousMode.scaleLeftPositionCenter;
-				break;
-			default:
-				autoMode = AutonomousMode.scaleLeftPositionRight;
-				break;
+				//	Determine which alliance station the robot is in.
+				switch (stationChooser.getSelected()) {
+					case "station1":
+						autoMode = AutonomousMode.scaleLeftPositionLeft;
+						System.out.println("Picked Auto Mode");
+						break;
+					case "station2":
+						autoMode = AutonomousMode.scaleLeftPositionCenter;
+						break;
+					default:
+						autoMode = AutonomousMode.scaleLeftPositionRight;
+						break;
+				}
 			}
-		}
-	} else if (m_chooser.getSelected().equals("switch")) {
+		} else if (m_chooser.getSelected().equals("switch")) {
 		
-		// Determine if the switch is on the left or right.
-		if (data.charAt(0) == 'R') {
+			// Determine if the switch is on the left or right.
+			if (data.charAt(0) == 'R') {
 			
-			// Determine which alliance station the robot is in.
-			switch (stationChooser.getSelected()) {
-			case "station1":
-				autoMode = AutonomousMode.switchRightPositionLeft;
-				break;
-			case "staiton2":
-				autoMode = AutonomousMode.switchRightPositionCenter;
-				break;
-			default:
-				autoMode = AutonomousMode.switchRightPositionRight;
-				break;
-		}
-	}
-		else {
-			switch (stationChooser.getSelected()) {
-			case "station1":
-				autoMode = AutonomousMode.switchLeftPositionLeft;
-				break;
-			case "station2":
-				autoMode = AutonomousMode.switchLeftPositionCenter;
-				break;
-			default:
-				autoMode = AutonomousMode.switchLeftPositionRight;
-				break;
+				// Determine which alliance station the robot is in.
+				switch (stationChooser.getSelected()) {
+				case "station1":
+					autoMode = AutonomousMode.switchRightPositionLeft;
+					break;
+				case "staiton2":
+					autoMode = AutonomousMode.switchRightPositionCenter;
+					break;
+				default:
+					autoMode = AutonomousMode.switchRightPositionRight;
+					break;
+				}
+			}
+			else {
+				switch (stationChooser.getSelected()) {
+				case "station1":
+					autoMode = AutonomousMode.switchLeftPositionLeft;
+					break;
+				case "station2":
+					autoMode = AutonomousMode.switchLeftPositionCenter;
+					break;
+				default:
+					autoMode = AutonomousMode.switchLeftPositionRight;
+					break;
 				}
 			}
 		} else {
@@ -216,6 +212,7 @@ public class Robot extends IterativeRobot {
 			autoMode = AutonomousMode.stop;
 		}
 	}
+
 	/**
 	 * This function is called periodically during autonomous.
 	 */
@@ -231,11 +228,10 @@ public class Robot extends IterativeRobot {
 		switch (instruction.getState()) {
 		
 			case DRIVE_FORWARD:
-				System.out.println("Robot Driving Forward: " + getDistanceTraveled());
 				if (getDistanceTraveled() < instruction.getLimit()) {
-					if(currentSpeed < defaultSpeed && leftEncoder.get() / ticksPerInch < DistanceScale * instruction.getLimit() && currentSpeed > 0.6) {
+					if(currentSpeed < defaultSpeed && leftEncoder.get() / ticksPerInch < distanceScale * instruction.getLimit() && currentSpeed > 0.6) {
 						currentSpeed+=accelerationRate;
-					} else if(leftEncoder.get() / ticksPerInch > DistanceScale * instruction.getLimit() && currentSpeed > 0.6) {
+					} else if(leftEncoder.get() / ticksPerInch > distanceScale * instruction.getLimit() && currentSpeed > minimumDriveSpeed) {
 						currentSpeed-=accelerationRate;
 					}
 					accurateDrive(navx.getYaw(), currentSpeed, instruction.getTargetAngle(), tolerance);
@@ -250,10 +246,10 @@ public class Robot extends IterativeRobot {
 				
 			case DRIVE_BACKWARD:
 				if (getDistanceTraveled() < instruction.getLimit()) {
-					if(currentSpeed < defaultSpeed && leftEncoder.get() / ticksPerInch < DistanceScale * instruction.getLimit()) {
+					if(currentSpeed < defaultSpeed && leftEncoder.get() / ticksPerInch < distanceScale * instruction.getLimit()) {
 						currentSpeed+=accelerationRate;
 					}
-					else if(leftEncoder.get() / ticksPerInch > DistanceScale * instruction.getLimit() && currentSpeed > 0.6) {
+					else if(leftEncoder.get() / ticksPerInch > distanceScale * instruction.getLimit() && currentSpeed > minimumDriveSpeed) {
 						currentSpeed-=accelerationRate;
 					}
 					accurateDrive(navx.getYaw(), -currentSpeed, instruction.getTargetAngle(), tolerance);
@@ -266,7 +262,7 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 				
-			case TURN_RIGHT:
+			case SPIN_RIGHT:
 				System.out.println("Robot Turning Right");
 				if (currentSpeed <= 0.4) {
 					currentSpeed = defaultSpeed;
@@ -284,7 +280,7 @@ public class Robot extends IterativeRobot {
 				}
 				break;
 				
-			case TURN_LEFT:
+			case SPIN_LEFT:
 				if(currentSpeed <= 0.4) {
 					currentSpeed = defaultSpeed;
 				}
@@ -294,6 +290,42 @@ public class Robot extends IterativeRobot {
 						currentSpeed -= decelerationRate;
 					}
 					myRobot.tankDrive(-currentSpeed, currentSpeed);
+				} else {
+					leftEncoder.reset();
+					rightEncoder.reset();
+					instructionIndex++;
+				}
+				break;
+				
+			case TURN_RIGHT:
+				if (currentSpeed <= 0.4) {
+					currentSpeed = defaultSpeed;
+				}
+				
+				if (currentAngle < instruction.getTargetAngle() - tolerance ||
+					currentAngle > instruction.getTargetAngle() + tolerance) {
+					if (currentSpeed > 0.55 && currentAngle > instruction.getTargetAngle() * 0.8) {
+						currentSpeed -= decelerationRate;
+					}
+					myRobot.tankDrive(currentSpeed, -getInnerCurveSpeed(currentSpeed, instruction.getLimit()));
+				} else {
+					leftEncoder.reset();
+					rightEncoder.reset();
+					instructionIndex++;
+				}
+				break;
+				
+			case TURN_LEFT:
+				if (currentSpeed <= 0.4) {
+					currentSpeed = defaultSpeed;
+				}
+				
+				if (currentAngle < instruction.getTargetAngle() - tolerance ||
+					currentAngle > instruction.getTargetAngle() + tolerance) {
+					if (currentSpeed > 0.55 && currentAngle > instruction.getTargetAngle() * 0.8) {
+						currentSpeed -= decelerationRate;
+					}
+					myRobot.tankDrive(currentSpeed, -getInnerCurveSpeed(currentSpeed, instruction.getLimit()));
 				} else {
 					leftEncoder.reset();
 					rightEncoder.reset();
@@ -330,9 +362,6 @@ public class Robot extends IterativeRobot {
 				}
 				System.out.println("Time: "+timer.get());
 				if(timer.get() < instruction.getLimit()) {
-					/*if(currentSpeed < 1) {
-					     currentSpeed+=accelerationRate;
-					}*/
 					elevator1.set(1.0);
 					elevator2.set(1.0);
 					myRobot.tankDrive(0.0,0.0);
@@ -351,8 +380,8 @@ public class Robot extends IterativeRobot {
 					timer.start();
 				}
 				if(timer.get() < instruction.getLimit()) {
-					intakeL.set((m_chooser.getSelected().equals("switch")) ? SwitchOutput : ScaleOutput);
-					intakeR.set((m_chooser.getSelected().equals("switch")) ? SwitchOutput : ScaleOutput);
+					intakeL.set((m_chooser.getSelected().equals("switch")) ? switchOutput : scaleOutput);
+					intakeR.set((m_chooser.getSelected().equals("switch")) ? switchOutput : scaleOutput);
 				}
 				else {
 					timer.stop();
@@ -368,12 +397,7 @@ public class Robot extends IterativeRobot {
 					timer.start();
 				}
 				if (timer.get() < instruction.getLimit()) {
-					try {
-						timer.wait(10);
-					} catch (InterruptedException | IllegalMonitorStateException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					Timer.delay(1);
 				} else {
 					timer.stop();
 					timer.reset();
@@ -401,7 +425,7 @@ public class Robot extends IterativeRobot {
 	
 	public void teleopPeriodic() {
 		if(bumperR.get()) {
-			myRobot.arcadeDrive(-(DriveStick.getY()*0.6), DriveStick.getX()*0.6);
+			myRobot.arcadeDrive(-(driveStick.getY()*0.6), driveStick.getX()*0.6);
 		}
 		else {
 			/*currentSpeed=DriveStick.getY();
@@ -410,12 +434,8 @@ public class Robot extends IterativeRobot {
 			}
 			myRobot.arcadeDrive(currentSpeed, DriveStick.getX()*0.8);
 			previousSpeed = currentSpeed; */
-			myRobot.arcadeDrive(-(DriveStick.getY()), DriveStick.getX()*0.8);
+			myRobot.arcadeDrive(-(driveStick.getY()), driveStick.getX()*0.8);
 		}
-		
-		//myRobot.tankDrive(-stick.getY(), -stick.getRawAxis(5));
-		
-		//climer.set(-stick.getRawAxis(3));
 		
 		elevator1.set(-stick.getRawAxis(1) / 1.5);
 		elevator2.set(-stick.getRawAxis(1) / 1.5);
@@ -479,8 +499,10 @@ public class Robot extends IterativeRobot {
 	private float getDistanceTraveled() {
 		final float leftDistance = leftEncoder.get() / ticksPerInch;
 		final float rightDistance = rightEncoder.get() / ticksPerInch;
-		//System.out.println("Left Encoder: "+leftEncoder.get());
-		//System.out.println("Right Encoder: "+rightEncoder.get());
 		return (leftDistance + rightDistance) / 2f;
+	}
+	
+	private double getInnerCurveSpeed(final double outerSpeed, final double radius) {
+		return outerSpeed * ((radius - (robotWidth / 2)) / (radius + robotWidth / 2));
 	}
 }
