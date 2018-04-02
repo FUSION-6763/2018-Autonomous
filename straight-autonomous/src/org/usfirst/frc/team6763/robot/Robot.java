@@ -12,7 +12,8 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.CameraServer; 
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Joystick;
@@ -61,6 +62,8 @@ public class Robot extends IterativeRobot {
 	Encoder rightEncoder = new Encoder(2, 3);
 	
 	Timer timer = new Timer();
+	
+	PowerDistributionPanel PDP = new PowerDistributionPanel();
 	
 	double currentSpeed;
 	double previousSpeed;
@@ -412,7 +415,14 @@ public class Robot extends IterativeRobot {
 				break;
 		}
 	}
-			
+	
+	double o;
+	double op;
+	double d = 0.03;
+	
+	double o2;
+	double op2;
+	double d2 = 0.03;
 			
 	/**
 	 * This function is called periodically during operator control.
@@ -421,21 +431,35 @@ public class Robot extends IterativeRobot {
 	
 	public void teleopInit() {
 		currentSpeed = 0.4;
+		
+		SmartDashboard.putBoolean("Gradual Acceleration", true);
 	}
 	
 	public void teleopPeriodic() {
-		if(bumperR.get()) {
-			myRobot.arcadeDrive(-(driveStick.getY()*0.6), driveStick.getX()*0.6);
+		boolean gradualAcceleration = SmartDashboard.getBoolean("Gradual Acceleration", true);
+		
+		o = -driveStick.getY();
+		if (o > op+d) {
+		    o = op+d;
 		}
-		else {
-			/*currentSpeed=DriveStick.getY();
-			if(currentSpeed > previousSpeed + accelerationRate) {
-					currentSpeed = previousSpeed + accelerationRate;
-			}
-			myRobot.arcadeDrive(currentSpeed, DriveStick.getX()*0.8);
-			previousSpeed = currentSpeed; */
-			myRobot.arcadeDrive(-(driveStick.getY()), driveStick.getX()*0.8);
+		else if (o < op-d) {
+			o = op-d;
 		}
+		op = o;
+				
+		o2 = driveStick.getX();
+		if (o2 > op2+d2) {
+			o2 = op2+d2;
+		}
+		else if (o2 < op2-d2) {
+			o2 = op2-d2;
+		}
+		op2 = o2;
+				
+		if(gradualAcceleration) myRobot.arcadeDrive(o, o2, false);
+		else myRobot.arcadeDrive(-driveStick.getY(), driveStick.getX(), false);
+				
+		if(driveStick.getRawButtonPressed(1)) SmartDashboard.putBoolean("Gradual Acceleration", !SmartDashboard.getBoolean("Gradual Acceleration", true));
 		
 		elevator1.set(-stick.getRawAxis(1) / 1.5);
 		elevator2.set(-stick.getRawAxis(1) / 1.5);
