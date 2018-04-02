@@ -272,7 +272,7 @@ public class Robot extends IterativeRobot {
 				}
 				if (currentAngle < instruction.getTargetAngle() - tolerance ||
 					currentAngle > instruction.getTargetAngle() + tolerance) {
-					if(currentSpeed > 0.55) {
+					if(currentSpeed > 0.55 && currentAngle > instruction.getTargetAngle() * 0.5) {
 						currentSpeed -= decelerationRate;
 					}
 					myRobot.tankDrive(currentSpeed, -currentSpeed);
@@ -289,7 +289,7 @@ public class Robot extends IterativeRobot {
 				}
 				if (currentAngle < instruction.getTargetAngle() - tolerance ||
 					currentAngle > instruction.getTargetAngle() + tolerance) {
-					if(currentSpeed > 0.55) {
+					if(currentSpeed > 0.55 && currentAngle < instruction.getTargetAngle() * 0.5) {
 						currentSpeed -= decelerationRate;
 					}
 					myRobot.tankDrive(-currentSpeed, currentSpeed);
@@ -436,7 +436,9 @@ public class Robot extends IterativeRobot {
 	}
 	
 	public void teleopPeriodic() {
-		boolean gradualAcceleration = SmartDashboard.getBoolean("Gradual Acceleration", true);
+		//Gradual acceleration code
+		
+		/*boolean gradualAcceleration = SmartDashboard.getBoolean("Gradual Acceleration", true);
 		
 		o = -driveStick.getY();
 		if (o > op+d) {
@@ -446,8 +448,8 @@ public class Robot extends IterativeRobot {
 			o = op-d;
 		}
 		op = o;
-				
-		o2 = driveStick.getX();
+		
+		o2 = driveStick.getRawAxis(4);
 		if (o2 > op2+d2) {
 			o2 = op2+d2;
 		}
@@ -457,9 +459,11 @@ public class Robot extends IterativeRobot {
 		op2 = o2;
 				
 		if(gradualAcceleration) myRobot.arcadeDrive(o, o2, false);
-		else myRobot.arcadeDrive(-driveStick.getY(), driveStick.getX(), false);
+		else myRobot.arcadeDrive(-driveStick.getY(), driveStick.getRawAxis(4), false);
 				
 		if(driveStick.getRawButtonPressed(1)) SmartDashboard.putBoolean("Gradual Acceleration", !SmartDashboard.getBoolean("Gradual Acceleration", true));
+		*/
+		myRobot.arcadeDrive(-driveStick.getY(), driveStick.getRawAxis(4));
 		
 		elevator1.set(-stick.getRawAxis(1) / 1.5);
 		elevator2.set(-stick.getRawAxis(1) / 1.5);
