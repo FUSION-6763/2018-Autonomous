@@ -227,7 +227,7 @@ public class Robot extends IterativeRobot {
 		
 			case DRIVE_FORWARD:
 				if (getDistanceTraveled() < instruction.getLimit()) {
-					if(currentSpeed < defaultSpeed && getDistanceTraveled() / ticksPerInch < distanceScale * instruction.getLimit() && currentSpeed > minimumDriveSpeed) {
+					if(currentSpeed < defaultSpeed && getDistanceTraveled() < distanceScale * instruction.getLimit()) {
 						currentSpeed += accelerationRate;
 					} else if(getDistanceTraveled() / ticksPerInch > distanceScale * instruction.getLimit() && currentSpeed > minimumDriveSpeed) {
 						currentSpeed -= accelerationRate;
@@ -244,7 +244,7 @@ public class Robot extends IterativeRobot {
 				
 			case DRIVE_BACKWARD:
 				if (getDistanceTraveled() < instruction.getLimit()) {
-					if(currentSpeed < defaultSpeed && getDistanceTraveled() / ticksPerInch < distanceScale * instruction.getLimit()) {
+					if(currentSpeed < defaultSpeed && getDistanceTraveled() < distanceScale * instruction.getLimit()) {
 						currentSpeed+=accelerationRate;
 					}
 					else if(getDistanceTraveled() / ticksPerInch > distanceScale * instruction.getLimit() && currentSpeed > minimumDriveSpeed) {
@@ -267,7 +267,7 @@ public class Robot extends IterativeRobot {
 				}
 				if (currentAngle < instruction.getTargetAngle() - tolerance ||
 					currentAngle > instruction.getTargetAngle() + tolerance) {
-					if(currentSpeed > 0.55 && currentAngle > instruction.getTargetAngle() * 0.5) {
+					if(currentSpeed > 0.55) {
 						currentSpeed -= decelerationRate;
 					}
 					myRobot.tankDrive(currentSpeed, -currentSpeed);
@@ -285,7 +285,7 @@ public class Robot extends IterativeRobot {
 				}
 				if (currentAngle < instruction.getTargetAngle() - tolerance ||
 					currentAngle > instruction.getTargetAngle() + tolerance) {
-					if(currentSpeed > 0.55 && currentAngle < instruction.getTargetAngle() * 0.5) {
+					if(currentSpeed > 0.55) {
 						currentSpeed -= decelerationRate;
 					}
 					myRobot.tankDrive(-currentSpeed, currentSpeed);
